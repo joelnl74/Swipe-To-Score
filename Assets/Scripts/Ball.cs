@@ -1,5 +1,5 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 //Required rigidbody component to the gameobject to attach this script
@@ -8,10 +8,10 @@ public class Ball : MonoBehaviour {
 
     //Reset time before the ball is put back on the penalty point
     [SerializeField]
-    private int resetBallPositionTime;
+    private int _resetBallPositionTime;
     //Base force for shooting in the z direction
     [SerializeField]
-    private float _throwForceZ;
+    private int _throwForceZ;
 
     //Time you start Swipping
     private float _touchTimeStart;
@@ -25,7 +25,9 @@ public class Ball : MonoBehaviour {
     //End position when you release your finger from the screen
     private Vector2 _endPosition;
     //Direction the ball has to move
-    private Vector3 _direction;
+    private Vector2 _direction;
+    //StartPosition of the ball and the position the ball has to be set back to after x amount of seconds
+    private Vector3 _ballStartPosition;
     //Rigidbody attached to this gameobject
     private Rigidbody _rigidbody;
 
@@ -34,52 +36,62 @@ public class Ball : MonoBehaviour {
         //gets the rigidbody that is attached to this gameobject
         _rigidbody = GetComponent<Rigidbody>();
 
-        _startPosition = new Vector2(0, 0);
-        _endPosition = new Vector2(0, 0);
+        _ballStartPosition = gameObject.transform.position;
 	}
 	// Update is called once per frame, use FixedUpdate for updating rigidbodies
 	void FixedUpdate () {
         ShootBall();
 	}
+    //Shoot the ball with a force and direction
+    private void ShootBall()
+    {
+        //press left mouse button or start pressing the screen
+        if(GameManager.instance.GetGameState() == GameState.idle)
+        {
+            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began || Input.GetMouseButtonDown(0))
+            {
+                //set start time and position for swipping
+                _touchTimeStart = Time.time;
+                if (!Application.isEditor)
+                    _startPosition = Input.GetTouch(0).position;
+                else
+                    _startPosition = Input.mousePosition;
+            }
+            //release left mouse button or release finger from screen
+            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Ended || Input.GetMouseButtonUp(0))
+            {
+                GameManager.instance.SetGameState(GameState.shooting);
+
+                //set end time and end position for swipping
+                _touchTimeEnd = Time.time;
+                if (!Application.isEditor)
+                    _endPosition = Input.GetTouch(0).position;
+                else
+                    _endPosition = Input.mousePosition;
+
+                //calculate diffrence between end and start time
+                _interval = _touchTimeEnd - _touchTimeStart;
+                //calculate diffrence between start and end position of swipping
+                _direction = _startPosition - _endPosition;
+
+                _rigidbody.isKinematic = false;
+                //Add force to the ball
+                _rigidbody.AddForce(-_direction.x * 1.0f, -_direction.y * 1.0f, _throwForceZ / _interval);
+
+                //Reset the ball position after x amount of time
+                StartCoroutine(ResetBallPosition(_resetBallPositionTime));
+            }
+        }
+    }
     /// <summary>
     /// Reset the ball position after x amount of seconds
     /// </summary>
     /// <param name="seconds">amount of seconds waiting before you reset the ball</param>
-    private void ResetBallPosition(int seconds)
+    private IEnumerator ResetBallPosition(int timeInSeconds)
     {
-
-    }
-    //Shoot the ball with a force and direction
-    private void ShootBall()
-    {
-        //press left mouse button
-        if (Input.GetMouseButtonDown(0))
-        {
-            //set start time and position for swipping
-            _touchTimeStart = Time.time;
-            _startPosition = Input.mousePosition;
-        }
-        //release left mouse button
-        if (Input.GetMouseButtonUp(0))
-        {
-            GameManager.instance.SetGameState(GameState.shooting);
-
-            //set end time and end position for swipping
-            _touchTimeEnd = Time.time;
-            _endPosition = Input.mousePosition;
-
-            //calculate diffrence between end and start time
-            _interval = _touchTimeEnd - _touchTimeStart;
-
-            //calculate diffrence between start and end position of swipping
-            _direction = _startPosition - _endPosition;
-
-            _rigidbody.isKinematic = false;
-            //Add force to the ball
-            _rigidbody.AddForce(-_direction.x * _interval, -_direction.y * _interval, _throwForceZ / _interval, ForceMode.Force);
-
-            //Reset the ball position after x amount of time
-            ResetBallPosition(5);
-        }
+        yield return new WaitForSeconds(timeInSeconds);
+        _rigidbody.isKinematic = true;
+        gameObject.transform.position = _ballStartPosition;
+        GameManager.instance.SetGameState(GameState.idle);
     }
 }
