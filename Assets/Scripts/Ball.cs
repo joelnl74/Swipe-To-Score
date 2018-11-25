@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using UnityEngine.SceneManagement;
 using UnityEngine;
 
 //Required rigidbody component to the gameobject to attach this script
@@ -27,7 +26,7 @@ public class Ball : MonoBehaviour {
     //Direction the ball has to move
     private Vector2 _direction;
     //StartPosition of the ball and the position the ball has to be set back to after x amount of seconds
-    private Vector3 _ballStartPosition;
+    private Vector3 _spawnPosition;
     //Rigidbody attached to this gameobject
     private Rigidbody _rigidbody;
 
@@ -35,8 +34,8 @@ public class Ball : MonoBehaviour {
 	void Start () {
         //gets the rigidbody that is attached to this gameobject
         _rigidbody = GetComponent<Rigidbody>();
-
-        _ballStartPosition = gameObject.transform.position;
+        //set starting position of the ball so we can respawn it correctly
+        _spawnPosition = gameObject.transform.position;
 	}
 	// Update is called once per frame, use FixedUpdate for updating rigidbodies
 	void FixedUpdate () {
@@ -91,7 +90,7 @@ public class Ball : MonoBehaviour {
     {
         yield return new WaitForSeconds(timeInSeconds);
         _rigidbody.isKinematic = true;
-        gameObject.transform.position = _ballStartPosition;
+        gameObject.transform.position = _spawnPosition;
         GameManager.instance.SetGameState(GameState.idle);
     }
 }

@@ -7,7 +7,7 @@ public class GoalLine : MonoBehaviour {
     [SerializeField]
     private Text _scoreText;
     //Keeps the current amount of score goals
-    private int _score;
+    private ushort _score;
 
     private void Start()
     {

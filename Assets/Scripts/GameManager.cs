@@ -5,6 +5,7 @@ public enum GameState
 {
     idle,
     shooting,
+    pause,
 }
 
 public class GameManager : MonoBehaviour {
@@ -13,10 +14,11 @@ public class GameManager : MonoBehaviour {
     public static GameManager instance;
     //gets called whenever the gamestate changes, unity implementation of a observer pattern
     public UnityEvent changeGameState;
+
     //state the entire game is in
     private GameState gameState;
 
-	// Use this for initialization
+	// Use this for initialization. Unity way of handling singletons
 	void Awake () {
         if(instance == null)
         {

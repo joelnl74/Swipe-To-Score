@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GoalKeeper : MonoBehaviour {
 
@@ -13,17 +11,17 @@ public class GoalKeeper : MonoBehaviour {
     //Position the goalkeeper needs to move
     private Vector3 _targetPosition;
     //Start position of the goal keeper
-    private Vector3 _startPosition;
+    private Vector3 _spawnPosition;
+
 	// Use this for initialization
 	void Start () {
         //find the gameobject with the tag ball and set the reference
         _ball = GameObject.FindGameObjectWithTag("Ball");
         //set startposition of the gameobject
-        _startPosition = transform.position;
+        _spawnPosition = transform.position;
         //add this method to a listerner and gets called whenever the game state changes
         GameManager.instance.changeGameState.AddListener(SetBasePosition);
 	}
-	
 	// Update is called once per frame
 	void Update () {
         //check if the game is in the shooting state
@@ -40,7 +38,7 @@ public class GoalKeeper : MonoBehaviour {
     {
         if(GameManager.instance.GetGameState() == GameState.idle)
         {
-            transform.position = _startPosition;
+            transform.position = _spawnPosition;
         }
     }
 }
